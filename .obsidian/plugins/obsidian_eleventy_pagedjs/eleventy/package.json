@@ -1,0 +1,68 @@
+{
+  "name": "obsidian-eleventy-embedded",
+  "version": "1.0.0",
+  "description": "Moteur Eleventy embarqué dans le plugin Obsidian pour génération de sites statiques",
+  "private": true,
+  "main": "eleventy.config.js",
+  "scripts": {
+    "build": "eleventy",
+    "serve": "eleventy --serve --port=8080 --open",
+    "dev": "eleventy --serve --watch --port=8080",
+    "debug": "DEBUG=Eleventy* eleventy",
+    "clean": "rm -rf ../../../public/*",
+    "build-production": "NODE_ENV=production eleventy",
+    "analyze": "eleventy --dryrun",
+    "watch": "eleventy --watch",
+    "serve-quiet": "eleventy --serve --port=8080 --quiet",
+    "build-debug": "DEBUG=Eleventy:* eleventy",
+    "help": "eleventy --help",
+    "benchmark": "DEBUG=Eleventy:Benchmark* eleventy"
+  },
+  "keywords": [
+    "eleventy", 
+    "obsidian", 
+    "markdown-it", 
+    "static-site", 
+    "jamstack",
+    "embedded",
+    "internal"
+  ],
+  "author": "Plugin Obsidian Eleventy",
+  "license": "MIT",
+  "dependencies": {
+    "@11ty/eleventy": "^2.0.1",
+    "markdown-it": "^14.0.0",
+    "markdown-it-anchor": "^8.6.7",
+    "markdown-it-table-of-contents": "^0.6.0",
+    "markdown-it-footnote": "^4.0.0",
+    "markdown-it-task-lists": "^2.1.1",
+    "markdown-it-attrs": "^4.1.6",
+    "markdown-it-highlightjs": "^4.0.1",
+    "markdown-it-container": "^4.0.0",
+    "markdown-it-abbr": "^2.0.0",
+    "markdown-it-deflist": "^3.0.0",
+    "markdown-it-emoji": "^3.0.0",
+    "markdown-it-ins": "^4.0.0",
+    "markdown-it-mark": "^4.0.0",
+    "markdown-it-sub": "^2.0.0",
+    "markdown-it-sup": "^2.0.0",
+    "highlight.js": "^11.9.0"
+  },
+  "devDependencies": {
+    "@11ty/eleventy-dev-server": "^1.0.4"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "eleventy": {
+    "config": "eleventy.config.js",
+    "input": "../../../src",
+    "output": "../../../public"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}
