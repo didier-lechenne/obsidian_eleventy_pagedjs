@@ -1,0 +1,407 @@
+---
+layout: base.njk
+bodyClass: article-page
+showSidebar: true
+---
+
+<article class="article" itemscope itemtype="https://schema.org/Article">
+    
+    <!-- Article Header -->
+    <header class="article-header">
+        {% if featured %}
+            <div class="featured-badge">
+                <span class="badge-icon">⭐</span>
+                <span class="badge-text">Article en vedette</span>
+            </div>
+        {% endif %}
+        
+        <h1 class="article-title" itemprop="headline">{{ title }}</h1>
+        
+        <!-- Article Subtitle -->
+        {% if subtitle %}
+            <h2 class="article-subtitle">{{ subtitle }}</h2>
+        {% endif %}
+        
+        <div class="article-meta">
+            <!-- Author Info -->
+            <div class="author-info" itemprop="author" itemscope itemtype="https://schema.org/Person">
+                {% if author_avatar %}
+                    <img src="{{ author_avatar }}" alt="{{ author }}" class="author-avatar" loading="lazy">
+                {% endif %}
+                <div class="author-details">
+                    <span class="author-name" itemprop="name">{{ author or site.author }}</span>
+                    {% if author_title %}
+                        <span class="author-title">{{ author_title }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Publication Date -->
+            {% if date %}
+                <div class="meta-item">
+                    <span class="meta-icon">📅</span>
+                    <time datetime="{{ date | date('YYYY-MM-DD') }}" itemprop="datePublished">
+                        {{ date | date('readable') }}
+                    </time>
+                </div>
+            {% endif %}
+            
+            <!-- Last Modified -->
+            {% if modified and modified != date %}
+                <div class="meta-item">
+                    <span class="meta-icon">🔄</span>
+                    <time datetime="{{ modified | date('YYYY-MM-DD') }}" itemprop="dateModified">
+                        Mis à jour le {{ modified | date('readable') }}
+                    </time>
+                </div>
+            {% endif %}
+            
+            <!-- Reading Time -->
+            {% if content %}
+                <div class="meta-item">
+                    <span class="meta-icon">⏱️</span>
+                    <span class="reading-time">
+                        {% set wordCount = (content | striptags | wordcount) %}
+                        {% set readingTime = (wordCount / 200) | round %}
+                        {% if readingTime < 1 %}< 1{% else %}{{ readingTime }}{% endif %} min de lecture
+                    </span>
+                </div>
+            {% endif %}
+            
+            <!-- Article Series -->
+            {% if series %}
+                <div class="meta-item series">
+                    <span class="meta-icon">📚</span>
+                    <span class="series-info">
+                        Série : <a href="/series/{{ series | slug }}/" class="series-link">{{ series }}</a>
+                        {% if series_part %}(Partie {{ series_part }}){% endif %}
+                    </span>
+                </div>
+            {% endif %}
+            
+            <!-- Difficulty Level -->
+            {% if difficulty %}
+                <div class="meta-item difficulty">
+                    <span class="meta-icon">🎯</span>
+                    <span class="difficulty-level difficulty-{{ difficulty }}">
+                        Niveau : {{ difficulty | title }}
+                    </span>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Article Description/Summary -->
+        {% if description %}
+            <div class="article-summary" itemprop="description">
+                <p class="summary-text">{{ description }}</p>
+            </div>
+        {% endif %}
+        
+        <!-- Categories and Tags -->
+        <div class="article-taxonomy">
+            {% if categories and categories.length %}
+                <div class="categories">
+                    <span class="taxonomy-label">📂 Catégories :</span>
+                    {% for category in categories %}
+                        <a href="/categories/{{ category | slug }}/" class="category-badge">{{ category }}</a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            {% if tags and tags.length %}
+                <div class="tags">
+                    <span class="taxonomy-label">🏷️ Tags :</span>
+                    <div class="tags-list">
+                        {% for tag in tags %}
+                            <a href="/tags/{{ tag | slug }}/" class="tag" data-tag="{{ tag }}">#{{ tag }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Featured Image -->
+        {% if featured_image %}
+            <figure class="featured-image">
+                <img src="{{ featured_image }}" alt="{{ featured_image_alt or title }}" 
+                     class="article-image" loading="lazy" itemprop="image">
+                {% if featured_image_caption %}
+                    <figcaption class="image-caption">{{ featured_image_caption }}</figcaption>
+                {% endif %}
+            </figure>
+        {% endif %}
+        
+        <!-- Table of Contents -->
+        {% if showToc !== false %}
+            <details class="table-of-contents" open>
+                <summary class="toc-title">
+                    <span class="toc-icon">📋</span>
+                    <span class="toc-text">Sommaire de l'article</span>
+                </summary>
+                <div class="toc-content">
+                    <!-- This will be generated by markdown-it-table-of-contents -->
+                    <div class="toc-placeholder">[[toc]]</div>
+                </div>
+            </details>
+        {% endif %}
+    </header>
+    
+    <!-- Article Content -->
+    <div class="article-content" itemprop="articleBody">
+        {{ content | safe }}
+    </div>
+    
+    <!-- Article Footer -->
+    <footer class="article-footer">
+        
+        <!-- Article Series Navigation -->
+        {% if series %}
+            <div class="series-navigation">
+                <h4>📚 Autres articles de la série "{{ series }}"</h4>
+                {% set seriesArticles = collections.articles | filterBySeries(series) %}
+                <div class="series-list">
+                    {% for seriesArticle in seriesArticles %}
+                        <div class="series-item {% if seriesArticle.url == page.url %}current{% endif %}">
+                            {% if seriesArticle.url == page.url %}
+                                <span class="series-current">
+                                    <span class="series-number">{{ seriesArticle.data.series_part or loop.index }}</span>
+                                    <span class="series-title">{{ seriesArticle.data.title }}</span>
+                                    <span class="current-indicator">← Vous êtes ici</span>
+                                </span>
+                            {% else %}
+                                <a href="{{ seriesArticle.url }}" class="series-link">
+                                    <span class="series-number">{{ seriesArticle.data.series_part or loop.index }}</span>
+                                    <span class="series-title">{{ seriesArticle.data.title }}</span>
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Key Takeaways -->
+        {% if key_takeaways and key_takeaways.length %}
+            <div class="key-takeaways">
+                <h4>🎯 Points clés à retenir</h4>
+                <ul class="takeaways-list">
+                    {% for takeaway in key_takeaways %}
+                        <li class="takeaway-item">{{ takeaway }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        
+        <!-- Resources -->
+        {% if resources and resources.length %}
+            <div class="resources">
+                <h4>📚 Ressources complémentaires</h4>
+                <ul class="resources-list">
+                    {% for resource in resources %}
+                        <li class="resource-item">
+                            <a href="{{ resource.url }}" target="_blank" rel="noopener" class="resource-link">
+                                <span class="resource-title">{{ resource.title }}</span>
+                                {% if resource.description %}
+                                    <span class="resource-description">{{ resource.description }}</span>
+                                {% endif %}
+                                <span class="external-icon">🔗</span>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        
+        <!-- Social Share -->
+        <div class="social-share">
+            <h4>📢 Partager cet article</h4>
+            <div class="share-buttons">
+                <a href="https://twitter.com/intent/tweet?text={{ title | urlencode }}&url={{ site.url }}{{ page.url | urlencode }}&via={{ site.twitter | default('') }}" 
+                   target="_blank" rel="noopener" class="share-btn twitter">
+                    <span class="share-icon">🐦</span> Twitter
+                </a>
+                <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ site.url }}{{ page.url | urlencode }}" 
+                   target="_blank" rel="noopener" class="share-btn linkedin">
+                    <span class="share-icon">💼</span> LinkedIn
+                </a>
+                <a href="https://www.reddit.com/submit?url={{ site.url }}{{ page.url | urlencode }}&title={{ title | urlencode }}" 
+                   target="_blank" rel="noopener" class="share-btn reddit">
+                    <span class="share-icon">🔴</span> Reddit
+                </a>
+                <a href="mailto:?subject={{ title | urlencode }}&body=Découvrez cet article : {{ site.url }}{{ page.url | urlencode }}" 
+                   class="share-btn email">
+                    <span class="share-icon">📧</span> Email
+                </a>
+                <button class="share-btn copy-link" onclick="copyLink()" title="Copier le lien">
+                    <span class="share-icon">🔗</span> Copier le lien
+                </button>
+            </div>
+        </div>
+        
+        <!-- Related Articles -->
+        {% set relatedArticles = collections.articles | relatedTo(page, tags, categories) | limit(3) %}
+        {% if relatedArticles.length %}
+            <div class="related-articles">
+                <h4>📖 Articles similaires</h4>
+                <div class="related-articles-grid">
+                    {% for article in relatedArticles %}
+                        <article class="related-article">
+                            {% if article.data.featured_image %}
+                                <div class="related-image">
+                                    <img src="{{ article.data.featured_image }}" alt="{{ article.data.title }}" loading="lazy">
+                                </div>
+                            {% endif %}
+                            <div class="related-content">
+                                <h5><a href="{{ article.url }}">{{ article.data.title }}</a></h5>
+                                {% if article.data.description %}
+                                    <p class="related-excerpt">{{ article.data.description | excerpt(100) }}</p>
+                                {% endif %}
+                                <div class="related-meta">
+                                    <time>{{ article.date | date('DD/MM/YYYY') }}</time>
+                                    {% if article.data.reading_time %}
+                                        <span class="separator">•</span>
+                                        <span class="reading-time">{{ article.data.reading_time }} min</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Author Bio -->
+        {% if author_bio %}
+            <div class="author-bio">
+                <h4>✍️ À propos de l'auteur</h4>
+                <div class="bio-content">
+                    {% if author_avatar %}
+                        <img src="{{ author_avatar }}" alt="{{ author }}" class="bio-avatar" loading="lazy">
+                    {% endif %}
+                    <div class="bio-text">
+                        <h5>{{ author or site.author }}</h5>
+                        {% if author_title %}<p class="bio-title">{{ author_title }}</p>{% endif %}
+                        <p class="bio-description">{{ author_bio }}</p>
+                        {% if author_links %}
+                            <div class="author-links">
+                                {% for link in author_links %}
+                                    <a href="{{ link.url }}" target="_blank" rel="noopener" class="author-link">
+                                        {{ link.title }}
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Article Navigation -->
+        <nav class="article-navigation" aria-label="Navigation entre les articles">
+            {% set previousArticle = collections.articles | getPreviousCollectionItem %}
+            {% set nextArticle = collections.articles | getNextCollectionItem %}
+            
+            <div class="nav-links">
+                <div class="nav-previous">
+                    {% if previousArticle %}
+                        <a href="{{ previousArticle.url }}" class="nav-link prev" rel="prev">
+                            <span class="nav-direction">← Article précédent</span>
+                            <span class="nav-title">{{ previousArticle.data.title }}</span>
+                            {% if previousArticle.data.description %}
+                                <span class="nav-excerpt">{{ previousArticle.data.description | excerpt(60) }}</span>
+                            {% endif %}
+                        </a>
+                    {% endif %}
+                </div>
+                
+                <div class="nav-up">
+                    <a href="/articles/" class="nav-link up">
+                        <span class="nav-direction">↑ Tous les articles</span>
+                    </a>
+                </div>
+                
+                <div class="nav-next">
+                    {% if nextArticle %}
+                        <a href="{{ nextArticle.url }}" class="nav-link next" rel="next">
+                            <span class="nav-direction">Article suivant →</span>
+                            <span class="nav-title">{{ nextArticle.data.title }}</span>
+                            {% if nextArticle.data.description %}
+                                <span class="nav-excerpt">{{ nextArticle.data.description | excerpt(60) }}</span>
+                            {% endif %}
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Article Meta Info -->
+        <div class="article-info">
+            <div class="publication-info">
+                <small>
+                    Article publié le <time datetime="{{ date | date('YYYY-MM-DD') }}">{{ date | date('readable') }}</time>
+                    {% if modified and modified != date %}
+                        et mis à jour le <time datetime="{{ modified | date('YYYY-MM-DD') }}">{{ modified | date('readable') }}</time>
+                    {% endif %}
+                </small>
+            </div>
+            
+            {% if license %}
+                <div class="license-info">
+                    <small>Licence : {{ license }}</small>
+                </div>
+            {% endif %}
+        </div>
+        
+    </footer>
+    
+</article>
+
+<!-- Article-specific JavaScript -->
+<script>
+// Enhanced copy link functionality
+function copyLink() {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(function() {
+        const btn = document.querySelector('.copy-link');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<span class="share-icon">✅</span> Copié !';
+        btn.classList.add('copied');
+        
+        setTimeout(() => {
+            btn.innerHTML = originalHTML;
+            btn.classList.remove('copied');
+        }, 2000);
+    });
+}
+
+// Progress bar for reading
+document.addEventListener('DOMContentLoaded', function() {
+    const article = document.querySelector('.article-content');
+    if (article) {
+        const progressBar = document.createElement('div');
+        progressBar.className = 'reading-progress';
+        document.body.appendChild(progressBar);
+        
+        window.addEventListener('scroll', function() {
+            const articleTop = article.offsetTop;
+            const articleHeight = article.offsetHeight;
+            const scrolled = window.scrollY - articleTop;
+            const progress = Math.min(Math.max(scrolled / articleHeight, 0), 1);
+            progressBar.style.width = (progress * 100) + '%';
+        });
+    }
+});
+</script>
+
+<style>
+.reading-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: 3px;
+    background: linear-gradient(to right, #007bff, #0056b3);
+    z-index: 1000;
+    transition: width 0.1s ease;
+}
+</style>

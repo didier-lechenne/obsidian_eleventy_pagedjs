@@ -1,0 +1,410 @@
+---
+layout: base.njk
+bodyClass: home-page
+title: Accueil
+description: Bienvenue sur mon jardin numérique généré depuis Obsidian
+---
+
+<!-- Hero Section -->
+<section class="hero" role="banner">
+    <div class="hero-content">
+        <h1 class="hero-title">
+            <span class="hero-emoji">🌱</span>
+            Bienvenue dans mon jardin numérique
+        </h1>
+        <p class="hero-description">
+            {{ site.description or "Un espace où mes idées prennent racine et se connectent entre elles, généré automatiquement depuis mes notes Obsidian." }}
+        </p>
+        
+        <div class="hero-stats">
+            <div class="stat">
+                <span class="stat-number">{{ collections.notes.length }}</span>
+                <span class="stat-label">Notes</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number">{{ collections.allTags.length }}</span>
+                <span class="stat-label">Tags</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number">{{ site.buildTime | daysFromNow }}</span>
+                <span class="stat-label">Jours actifs</span>
+            </div>
+        </div>
+        
+        <div class="hero-actions">
+            <a href="/notes/" class="btn btn-primary">
+                <span class="btn-icon">📖</span>
+                Explorer les notes
+            </a>
+            <a href="/tags/" class="btn btn-secondary">
+                <span class="btn-icon">🏷️</span>
+                Parcourir par tags
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Content -->
+{% set featuredNotes = collections.notes | featured | limit(3) %}
+{% if featuredNotes.length %}
+<section class="featured-section">
+    <div class="section-header">
+        <h2 class="section-title">
+            <span class="section-icon">⭐</span>
+            Notes en vedette
+        </h2>
+        <p class="section-description">Mes réflexions les plus importantes</p>
+    </div>
+    
+    <div class="featured-grid">
+        {% for note in featuredNotes %}
+            <article class="featured-card">
+                {% if note.data.featured_image %}
+                    <div class="card-image">
+                        <img src="{{ note.data.featured_image }}" alt="{{ note.data.title }}" loading="lazy">
+                    </div>
+                {% endif %}
+                
+                <div class="card-content">
+                    <h3 class="card-title">
+                        <a href="{{ note.url }}">{{ note.data.title }}</a>
+                    </h3>
+                    
+                    {% if note.data.description %}
+                        <p class="card-excerpt">{{ note.data.description }}</p>
+                    {% else %}
+                        <p class="card-excerpt">{{ note.content | excerpt(120) }}</p>
+                    {% endif %}
+                    
+                    <div class="card-meta">
+                        <time class="card-date">{{ note.date | date('DD/MM/YYYY') }}</time>
+                        {% if note.data.tags.length %}
+                            <div class="card-tags">
+                                {% for tag in note.data.tags | limit(3) %}
+                                    <span class="tag-mini">#{{ tag }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Recent Notes -->
+<section class="recent-section">
+    <div class="section-header">
+        <h2 class="section-title">
+            <span class="section-icon">🆕</span>
+            Notes récentes
+        </h2>
+        <p class="section-description">Mes dernières réflexions et découvertes</p>
+        <a href="/notes/" class="section-link">Voir toutes les notes →</a>
+    </div>
+    
+    <div class="notes-grid">
+        {% for note in collections.notes | limit(6) %}
+            <article class="note-card">
+                <div class="note-card-content">
+                    <h3 class="note-card-title">
+                        <a href="{{ note.url }}">{{ note.data.title }}</a>
+                    </h3>
+                    
+                    {% if note.data.description %}
+                        <p class="note-card-excerpt">{{ note.data.description }}</p>
+                    {% else %}
+                        <p class="note-card-excerpt">{{ note.content | excerpt(100) }}</p>
+                    {% endif %}
+                    
+                    <div class="note-card-footer">
+                        <div class="note-card-meta">
+                            <time class="note-date">{{ note.date | date('DD/MM/YYYY') }}</time>
+                            {% if note.data.reading_time %}
+                                <span class="reading-time">{{ note.data.reading_time }} min</span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if note.data.tags.length %}
+                            <div class="note-card-tags">
+                                {% for tag in note.data.tags | limit(3) %}
+                                    <a href="/tags/{{ tag | slug }}/" class="tag-mini">#{{ tag }}</a>
+                                {% endfor %}
+                                {% if note.data.tags.length > 3 %}
+                                    <span class="tag-more">+{{ note.data.tags.length - 3 }}</span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Tag Cloud -->
+<section class="tags-section">
+    <div class="section-header">
+        <h2 class="section-title">
+            <span class="section-icon">🏷️</span>
+            Exploration par tags
+        </h2>
+        <p class="section-description">Naviguez dans mes centres d'intérêt</p>
+        <a href="/tags/" class="section-link">Voir tous les tags →</a>
+    </div>
+    
+    <div class="tag-cloud">
+        {% for tag in collections.allTags | limit(20) %}
+            {% set tagCount = collections.notesByTag[tag].length %}
+            <a href="/tags/{{ tag | slug }}/" 
+               class="tag-cloud-item" 
+               data-count="{{ tagCount }}"
+               style="font-size: {{ (tagCount * 0.2 + 0.8) | round(2) }}rem;">
+                #{{ tag }}
+                <span class="tag-count">({{ tagCount }})</span>
+            </a>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Statistics Dashboard -->
+<section class="stats-section">
+    <div class="section-header">
+        <h2 class="section-title">
+            <span class="section-icon">📊</span>
+            Aperçu de mon jardin
+        </h2>
+        <p class="section-description">Quelques statistiques sur mes notes</p>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📝</div>
+            <div class="stat-content">
+                <div class="stat-number">{{ collections.notes.length }}</div>
+                <div class="stat-label">Notes publiées</div>
+                <div class="stat-detail">
+                    {% set recentCount = collections.notes | recent(7).length %}
+                    +{{ recentCount }} cette semaine
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">🏷️</div>
+            <div class="stat-content">
+                <div class="stat-number">{{ collections.allTags.length }}</div>
+                <div class="stat-label">Tags différents</div>
+                <div class="stat-detail">
+                    {% set avgTagsPerNote = (collections.allTags.length / collections.notes.length) | round(1) %}
+                    {{ avgTagsPerNote }} tags/note en moyenne
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">🔗</div>
+            <div class="stat-content">
+                <div class="stat-number">{{ collections.notes | totalBacklinks }}</div>
+                <div class="stat-label">Liens internes</div>
+                <div class="stat-detail">
+                    Connexions entre notes
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">📅</div>
+            <div class="stat-content">
+                <div class="stat-number">{{ site.buildTime | daysFromStart }}</div>
+                <div class="stat-label">Jours d'écriture</div>
+                <div class="stat-detail">
+                    Depuis {{ collections.notes | oldest | date('MM/YYYY') }}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Recent Activity Timeline -->
+<section class="activity-section">
+    <div class="section-header">
+        <h2 class="section-title">
+            <span class="section-icon">⏰</span>
+            Activité récente
+        </h2>
+        <p class="section-description">Les dernières mises à jour de mes notes</p>
+    </div>
+    
+    <div class="activity-timeline">
+        {% for note in collections.notes | recent(5) %}
+            <div class="timeline-item">
+                <div class="timeline-marker">
+                    <span class="timeline-icon">
+                        {% if note.data.modified %}🔄{% else %}✨{% endif %}
+                    </span>
+                </div>
+                <div class="timeline-content">
+                    <div class="timeline-header">
+                        <h4 class="timeline-title">
+                            <a href="{{ note.url }}">{{ note.data.title }}</a>
+                        </h4>
+                        <time class="timeline-date">{{ note.date | date('DD/MM/YYYY') }}</time>
+                    </div>
+                    {% if note.data.description %}
+                        <p class="timeline-description">{{ note.data.description | excerpt(80) }}</p>
+                    {% endif %}
+                    {% if note.data.tags.length %}
+                        <div class="timeline-tags">
+                            {% for tag in note.data.tags | limit(3) %}
+                                <span class="tag-mini">#{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <div class="activity-footer">
+        <a href="/notes/" class="btn btn-outline">Voir toute l'activité</a>
+    </div>
+</section>
+
+<!-- Quick Navigation -->
+<section class="navigation-section">
+    <div class="section-header">
+        <h2 class="section-title">
+            <span class="section-icon">🧭</span>
+            Explorer mon jardin
+        </h2>
+        <p class="section-description">Différentes façons de naviguer dans mes idées</p>
+    </div>
+    
+    <div class="navigation-grid">
+        <a href="/notes/" class="nav-card">
+            <div class="nav-icon">📖</div>
+            <h3 class="nav-title">Toutes les notes</h3>
+            <p class="nav-description">Parcourir chronologiquement</p>
+            <div class="nav-count">{{ collections.notes.length }} notes</div>
+        </a>
+        
+        <a href="/tags/" class="nav-card">
+            <div class="nav-icon">🏷️</div>
+            <h3 class="nav-title">Par tags</h3>
+            <p class="nav-description">Explorer par thème</p>
+            <div class="nav-count">{{ collections.allTags.length }} tags</div>
+        </a>
+        
+        <a href="/categories/" class="nav-card">
+            <div class="nav-icon">📂</div>
+            <h3 class="nav-title">Catégories</h3>
+            <p class="nav-description">Navigation structurée</p>
+            <div class="nav-count">{{ collections.allCategories.length or 0 }} catégories</div>
+        </a>
+        
+        <a href="/random/" class="nav-card">
+            <div class="nav-icon">🎲</div>
+            <h3 class="nav-title">Découverte</h3>
+            <p class="nav-description">Note aléatoire</p>
+            <div class="nav-count">Surprenez-moi !</div>
+        </a>
+    </div>
+</section>
+
+<!-- Newsletter/Subscribe Section (optional) -->
+{% if site.newsletter %}
+<section class="newsletter-section">
+    <div class="newsletter-card">
+        <div class="newsletter-content">
+            <h3 class="newsletter-title">
+                <span class="newsletter-icon">📬</span>
+                Restez connecté
+            </h3>
+            <p class="newsletter-description">
+                Recevez une notification quand je publie de nouvelles notes
+            </p>
+        </div>
+        <div class="newsletter-form">
+            <form action="{{ site.newsletter.action }}" method="post" class="subscribe-form">
+                <input type="email" 
+                       placeholder="Votre email" 
+                       required 
+                       class="email-input"
+                       name="email">
+                <button type="submit" class="subscribe-btn">
+                    <span class="btn-text">S'abonner</span>
+                    <span class="btn-icon">→</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- About Section -->
+<section class="about-section">
+    <div class="about-card">
+        <div class="about-content">
+            <h3 class="about-title">
+                <span class="about-icon">👋</span>
+                À propos de ce jardin numérique
+            </h3>
+            <p class="about-description">
+                Ce site est généré automatiquement depuis mes notes Obsidian. 
+                Chaque page reflète mes réflexions, apprentissages et découvertes, 
+                organisés et connectés comme dans un vrai jardin numérique.
+            </p>
+            <div class="about-tech">
+                <span class="tech-item">🔮 Obsidian</span>
+                <span class="tech-item">🕚 Eleventy</span>
+                <span class="tech-item">📝 Markdown-it</span>
+                <span class="tech-item">🎨 CSS moderne</span>
+            </div>
+        </div>
+        <div class="about-actions">
+            <a href="/about/" class="btn btn-outline">En savoir plus</a>
+            {% if site.source_url %}
+                <a href="{{ site.source_url }}" target="_blank" rel="noopener" class="btn btn-outline">
+                    <span class="btn-icon">💻</span>
+                    Code source
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Custom JavaScript for homepage -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate stats on scroll
+    const observerOptions = {
+        threshold: 0.5,
+        rootMargin: '0px 0px -100px 0px'
+    };
+    
+    const statsObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate');
+            }
+        });
+    }, observerOptions);
+    
+    document.querySelectorAll('.stat-card').forEach(card => {
+        statsObserver.observe(card);
+    });
+    
+    // Random note functionality
+    const randomLink = document.querySelector('a[href="/random/"]');
+    if (randomLink) {
+        randomLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            const notes = {{ collections.notes | dump | safe }};
+            const randomNote = notes[Math.floor(Math.random() * notes.length)];
+            window.location.href = randomNote.url;
+        });
+    }
+});
+</script>

@@ -1,0 +1,232 @@
+---
+layout: base.njk
+bodyClass: note-page
+showSidebar: true
+---
+
+<article class="note" itemscope itemtype="https://schema.org/Article">
+    
+    <!-- Note Header -->
+    <header class="note-header">
+        <h1 class="note-title" itemprop="headline">{{ title }}</h1>
+        
+        <div class="note-meta">
+            <!-- Publication Date -->
+            {% if date %}
+                <div class="meta-item">
+                    <span class="meta-icon">📅</span>
+                    <time datetime="{{ date | date('YYYY-MM-DD') }}" itemprop="datePublished">
+                        Publié le {{ date | date('readable') }}
+                    </time>
+                </div>
+            {% endif %}
+            
+            <!-- Last Modified Date -->
+            {% if modified and modified != date %}
+                <div class="meta-item">
+                    <span class="meta-icon">✏️</span>
+                    <time datetime="{{ modified | date('YYYY-MM-DD') }}" itemprop="dateModified">
+                        Modifié le {{ modified | date('readable') }}
+                    </time>
+                </div>
+            {% endif %}
+            
+            <!-- Author -->
+            {% if author %}
+                <div class="meta-item">
+                    <span class="meta-icon">👤</span>
+                    <span itemprop="author" itemscope itemtype="https://schema.org/Person">
+                        <span itemprop="name">{{ author }}</span>
+                    </span>
+                </div>
+            {% endif %}
+            
+            <!-- Reading Time Estimation -->
+            {% if content %}
+                <div class="meta-item">
+                    <span class="meta-icon">⏱️</span>
+                    <span class="reading-time">
+                        {% set wordCount = (content | striptags | wordcount) %}
+                        {% set readingTime = (wordCount / 200) | round %}
+                        {% if readingTime < 1 %}< 1{% else %}{{ readingTime }}{% endif %} min de lecture
+                    </span>
+                </div>
+            {% endif %}
+            
+            <!-- Categories -->
+            {% if categories and categories.length %}
+                <div class="meta-item categories">
+                    <span class="meta-icon">📂</span>
+                    <span class="categories-list">
+                        {% for category in categories %}
+                            <a href="/categories/{{ category | slug }}/" class="category-link">{{ category }}</a>{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </span>
+                </div>
+            {% endif %}
+            
+            <!-- Tags -->
+            {% if tags and tags.length %}
+                <div class="meta-item tags">
+                    <span class="meta-icon">🏷️</span>
+                    <div class="tags-list">
+                        {% for tag in tags %}
+                            <a href="/tags/{{ tag | slug }}/" class="tag" data-tag="{{ tag }}">#{{ tag }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Note Description -->
+        {% if description %}
+            <div class="note-description" itemprop="description">
+                <p>{{ description }}</p>
+            </div>
+        {% endif %}
+        
+        <!-- Table of Contents (if enabled) -->
+        {% if showToc and (content | toc) %}
+            <details class="table-of-contents" open>
+                <summary class="toc-title">📋 Sommaire</summary>
+                <div class="toc-content">
+                    {{ content | toc | safe }}
+                </div>
+            </details>
+        {% endif %}
+    </header>
+    
+    <!-- Note Content -->
+    <div class="note-content" itemprop="articleBody">
+        {{ content | safe }}
+    </div>
+    
+    <!-- Note Footer -->
+    <footer class="note-footer">
+        
+        <!-- Social Share Buttons -->
+        <div class="social-share">
+            <h4>📢 Partager cette note</h4>
+            <div class="share-buttons">
+                <a href="https://twitter.com/intent/tweet?text={{ title | urlencode }}&url={{ site.url }}{{ page.url | urlencode }}" 
+                   target="_blank" rel="noopener" class="share-btn twitter">
+                    <span class="share-icon">🐦</span> Twitter
+                </a>
+                <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ site.url }}{{ page.url | urlencode }}" 
+                   target="_blank" rel="noopener" class="share-btn linkedin">
+                    <span class="share-icon">💼</span> LinkedIn
+                </a>
+                <a href="mailto:?subject={{ title | urlencode }}&body=Découvrez cette note : {{ site.url }}{{ page.url | urlencode }}" 
+                   class="share-btn email">
+                    <span class="share-icon">📧</span> Email
+                </a>
+                <button class="share-btn copy-link" onclick="copyLink()" title="Copier le lien">
+                    <span class="share-icon">🔗</span> Copier le lien
+                </button>
+            </div>
+        </div>
+        
+        <!-- Related Notes -->
+        {% set relatedNotes = collections.notes | relatedTo(page, tags) | limit(3) %}
+        {% if relatedNotes.length %}
+            <div class="related-notes">
+                <h4>📖 Notes similaires</h4>
+                <div class="related-notes-grid">
+                    {% for note in relatedNotes %}
+                        <article class="related-note">
+                            <h5><a href="{{ note.url }}">{{ note.data.title }}</a></h5>
+                            {% if note.data.description %}
+                                <p class="note-excerpt">{{ note.data.description | excerpt(80) }}</p>
+                            {% endif %}
+                            <div class="note-meta-small">
+                                <time>{{ note.date | date('DD/MM/YYYY') }}</time>
+                                {% if note.data.tags.length %}
+                                    <span class="tag-count">{{ note.data.tags.length }} tag{% if note.data.tags.length > 1 %}s{% endif %}</span>
+                                {% endif %}
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Backlinks -->
+        {% set backlinks = collections.notes | backlinksTo(page.url) %}
+        {% if backlinks.length %}
+            <div class="backlinks">
+                <h4>🔗 Notes qui pointent vers cette page</h4>
+                <ul class="backlinks-list">
+                    {% for note in backlinks %}
+                        <li class="backlink-item">
+                            <a href="{{ note.url }}" class="backlink-title">{{ note.data.title }}</a>
+                            {% if note.data.description %}
+                                <p class="backlink-excerpt">{{ note.data.description | excerpt(100) }}</p>
+                            {% endif %}
+                            <div class="backlink-meta">
+                                <time>{{ note.date | date('DD/MM/YYYY') }}</time>
+                                {% if note.data.tags.length %}
+                                    <span class="separator">•</span>
+                                    {% for tag in note.data.tags | limit(3) %}
+                                        <span class="tag-mini">#{{ tag }}</span>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        
+        <!-- Navigation between notes -->
+        <nav class="note-navigation" aria-label="Navigation entre les notes">
+            {% set previousNote = collections.notes | getPreviousCollectionItem %}
+            {% set nextNote = collections.notes | getNextCollectionItem %}
+            
+            <div class="nav-links">
+                <div class="nav-previous">
+                    {% if previousNote %}
+                        <a href="{{ previousNote.url }}" class="nav-link prev" rel="prev">
+                            <span class="nav-direction">← Précédent</span>
+                            <span class="nav-title">{{ previousNote.data.title }}</span>
+                        </a>
+                    {% endif %}
+                </div>
+                
+                <div class="nav-up">
+                    <a href="/notes/" class="nav-link up">
+                        <span class="nav-direction">↑ Toutes les notes</span>
+                    </a>
+                </div>
+                
+                <div class="nav-next">
+                    {% if nextNote %}
+                        <a href="{{ nextNote.url }}" class="nav-link next" rel="next">
+                            <span class="nav-direction">Suivant →</span>
+                            <span class="nav-title">{{ nextNote.data.title }}</span>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Edit suggestion -->
+        {% if editUrl %}
+            <div class="edit-suggestion">
+                <p>💡 <a href="{{ editUrl }}" target="_blank" rel="noopener">Suggérer une modification</a> de cette note</p>
+            </div>
+        {% endif %}
+        
+        <!-- Last updated info -->
+        <div class="note-info">
+            <small class="note-updated">
+                Cette note a été mise à jour pour la dernière fois le 
+                <time datetime="{{ modified or date | date('YYYY-MM-DD') }}">
+                    {{ modified or date | date('DD/MM/YYYY à HH:mm') }}
+                </time>
+            </small>
+        </div>
+        
+    </footer>
+    
+</article>
+
